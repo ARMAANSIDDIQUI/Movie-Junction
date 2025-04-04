@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movie Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+      padding: 20px;
+    }
+    .movie-details {
+      max-width: 800px;
+      margin: auto;
+      background: #1c1c1c;
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+    }
+    .movie-details img {
+      width: 300px;
+      border-radius: 10px;
+    }
+    .info {
+      flex: 1;
+    }
+    h1 {
+      margin-top: 0;
+      color: #e50914;
+    }
+    .back {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #e50914;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← Back to Home</a>
+  <div id="movie" class="movie-details"></div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const imdbID = params.get('imdbID');
+    const movieDiv = document.getElementById('movie');
+
+    async function loadMovieDetails() {
+      if (!imdbID) {
+        movieDiv.innerHTML = "<p>Movie ID not found.</p>";
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://www.omdbapi.com/?i=${imdbID}&apikey=127cb415`);
+        const data = await res.json();
+
+        if (data.Response === "True") {
+          movieDiv.innerHTML = `
+            <img src="${data.Poster !== "N/A" ? data.Poster : 'https://via.placeholder.com/300x450'}" alt="${data.Title}">
+            <div class="info">
+              <h1>${data.Title} (${data.Year})</h1>
+              <p><strong>Genre:</strong> ${data.Genre}</p>
+              <p><strong>Director:</strong> ${data.Director}</p>
+              <p><strong>Actors:</strong> ${data.Actors}</p>
+              <p><strong>Plot:</strong> ${data.Plot}</p>
+              <p><strong>IMDB Rating:</strong> ⭐ ${data.imdbRating}</p>
+              <p><strong>Runtime:</strong> ${data.Runtime}</p>
+              <p><strong>Released:</strong> ${data.Released}</p>
+            </div>
+          `;
+        } else {
+          movieDiv.innerHTML = `<p>Movie not found.</p>`;
+        }
+
+      } catch (err) {
+        console.error(err);
+        movieDiv.innerHTML = `<p>Error loading movie details.</p>`;
+      }
+    }
+
+    loadMovieDetails();
+  </script>
+</body>
+</html>
