@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movie Details</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .movie-details {
+      display: flex;
+      gap: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .movie-details img {
+      width: 300px;
+      border-radius: 10px;
+    }
+
+    .info {
+      flex: 1;
+    }
+
+    h1 {
+      color: #e50914;
+    }
+
+    .back {
+      display: block;
+      margin-bottom: 20px;
+      color: #e50914;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back">← Back to Home</a>
+  <div id="movie" class="movie-details"></div>
+
+  <script>
+    const TMDB_API = "https://api.themoviedb.org/3";
+    const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1MTI4NDNlNWMxM2IwMGQ2OTZhNTU3MGZlMTU2NmU5NCIsIm5iZiI6MTc0Mzk1MzUzOC4yNTUsInN1YiI6IjY3ZjI5ZTgyOGIxZjMyZWI3OWQ5Yzc3NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.cuIHv66LQsiarcWNi-VPK5iO9pEqerBhZSSxf2yUhTk";
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const movieDiv = document.getElementById('movie');
+
+    async function loadMovieDetails() {
+      const res = await fetch(`${TMDB_API}/movie/${id}?language=en-US`, {
+        headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+      });
+      const data = await res.json();
+
+      movieDiv.innerHTML = `
+        <img src="https://image.tmdb.org/t/p/w500${data.poster_path}" alt="${data.title}" />
+        <div class="info">
+          <h1>${data.title} (${data.release_date?.split('-')[0]})</h1>
+          <p><strong>Genres:</strong> ${data.genres.map(g => g.name).join(', ')}</p>
+          <p><strong>Overview:</strong> ${data.overview}</p>
+          <p><strong>Rating:</strong> ⭐ ${data.vote_average}</p>
+          <p><strong>Runtime:</strong> ${data.runtime} minutes</p>
+          <p><strong>Release Date:</strong> ${data.release_date}</p>
+        </div>
+      `;
+    }
+
+    loadMovieDetails();
+  </script>
+</body>
+</html>

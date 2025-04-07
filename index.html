@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movie Junction</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0d0d0d;
+      color: #fff;
+    }
+
+    header {
+      background-color: #1a1a1a;
+      padding: 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      color: #e50914;
+    }
+
+    .search-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
+      margin: 30px auto;
+      width: 100%;
+      max-width: 800px;
+    }
+    
+    .search-container input {
+      flex: 5;
+      padding: 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+    
+    .search-container button {
+      flex: 1;
+      padding: 12px;
+      font-size: 1rem;
+      background-color: #e50914;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }    
+
+    .movie-grid {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+      gap: 20px;
+      justify-content: center;
+      padding: 20px;
+      max-width: 1700px;
+      margin: auto;
+    }
+
+    .movie-card {
+      width: 240px;
+      height: 500px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: #1f1f1f;
+      border-radius: 10px;
+      overflow: hidden;
+      padding: 10px;
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+
+    .movie-card:hover {
+      transform: scale(1.05);
+    }
+
+    .movie-card img {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .movie-title {
+      font-size: 1.2rem;
+      margin: 12px 0 0;
+      text-align: center;
+    }
+
+    .fav-button {
+      background-color: #e50914;
+      color: white;
+      padding: 10px;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: auto;
+    }
+
+    .fav-button:hover {
+      background-color: #ff1c1c;
+    }
+
+    .favorites-button {
+      background-color: #e50914;
+      color: white;
+      padding: 10px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .search-container {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .search-container input,
+      .search-container button {
+        width: 100%;
+        border-radius: 5px;
+      }
+
+      .movie-card {
+        width: 100%;
+        height: auto;
+      }
+
+      .movie-card img {
+        height: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Movie Junction</h1>
+    <div class="search-container">
+      <input id="searchInput" placeholder="🔍 Search movies..." />
+      <button class="favorites-button" onclick="window.location.href='favorites.html'">❤️ View Favorites</button>
+    </div>
+  </header>
+
+  <div class="movie-grid" id="movieGrid"></div>
+
+  <script>
+    const movieGrid = document.getElementById('movieGrid');
+    const searchInput = document.getElementById('searchInput');
+    const favoriteMovieIds = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const TMDB_API = "https://api.themoviedb.org/3";
+    const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1MTI4NDNlNWMxM2IwMGQ2OTZhNTU3MGZlMTU2NmU5NCIsIm5iZiI6MTc0Mzk1MzUzOC4yNTUsInN1YiI6IjY3ZjI5ZTgyOGIxZjMyZWI3OWQ5Yzc3NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.cuIHv66LQsiarcWNi-VPK5iO9pEqerBhZSSxf2yUhTk";
+
+    const movieTitles = [
+      'batman', 'avengers', 'spiderman','taare zameen par','3 idiots', 'iron man', 'doctor strange',
+      'transformers', 'fast and furious', 'deadpool',
+      'thor', 'hulk','john wick', 'mission impossible','singham'
+    ];
+
+    const allMovies = [];
+    let filteredMovies = [];
+
+    async function fetchMovieByTitle(title) {
+      const res = await fetch(`${TMDB_API}/search/movie?query=${encodeURIComponent(title)}&include_adult=false&language=en-US&page=1`, {
+        headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+      });
+      const data = await res.json();
+      return data.results[0];
+    }
+
+    function isFavorite(id) {
+      return favoriteMovieIds.includes(id);
+    }
+
+    function toggleFavorite(id) {
+      const index = favoriteMovieIds.indexOf(id);
+      if (index === -1) favoriteMovieIds.push(id);
+      else favoriteMovieIds.splice(index, 1);
+      localStorage.setItem('favorites', JSON.stringify(favoriteMovieIds));
+      renderMovies();
+    }
+
+    function renderMovies() {
+      movieGrid.innerHTML = '';
+      filteredMovies.forEach(movie => {
+        if (!movie) return;
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+
+        card.innerHTML = `
+          <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}" />
+          <h3 class="movie-title">${movie.title}</h3>
+          <button class="fav-button" onclick="event.stopPropagation(); toggleFavorite(${movie.id})">
+            ${isFavorite(movie.id) ? '❤️ Remove' : '➕ Add to Favorites'}
+          </button>
+        `;
+        
+        card.onclick = () => {
+          window.location.href = `movie.html?id=${movie.id}`;
+        };
+
+        movieGrid.appendChild(card);
+      });
+    }
+
+    function filterMovies(query) {
+      query = query.toLowerCase();
+      filteredMovies = allMovies.filter(m => m.title.toLowerCase().includes(query));
+      renderMovies();
+    }
+
+    searchInput.addEventListener('input', e => {
+      filterMovies(e.target.value);
+    });
+
+    (async function loadAllMovies() {
+      for (let title of movieTitles) {
+        const movie = await fetchMovieByTitle(title);
+        if (movie) allMovies.push(movie);
+      }
+      filteredMovies = [...allMovies];
+      renderMovies();
+    })();
+  </script>
+</body>
+</html>

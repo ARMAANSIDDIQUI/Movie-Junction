@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Favorites</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #e50914;
+    }
+
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+
+    .movie-card {
+      background: #1f1f1f;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .movie-card img {
+      width: 100%;
+      height: 270px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    .remove-btn {
+      margin-top: 10px;
+      background-color: #e50914;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .remove-btn:hover {
+      background-color: #ff1a1a;
+    }
+
+    .back {
+      margin-bottom: 20px;
+      display: inline-block;
+      color: #e50914;
+      text-decoration: none;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #aaa;
+      font-size: 1.2rem;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← Back to Home</a>
+  <h1>My Favorite Movies</h1>
+  <div class="movie-grid" id="favoritesList"></div>
+
+  <script>
+    const container = document.getElementById('favoritesList');
+    const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1MTI4NDNlNWMxM2IwMGQ2OTZhNTU3MGZlMTU2NmU5NCIsIm5iZiI6MTc0Mzk1MzUzOC4yNTUsInN1YiI6IjY3ZjI5ZTgyOGIxZjMyZWI3OWQ5Yzc3NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.cuIHv66LQsiarcWNi-VPK5iO9pEqerBhZSSxf2yUhTk";
+
+    let favoriteMovieIds = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+    async function fetchMovie(id) {
+      const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?language=en-US`, {
+        headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+      });
+      return await res.json();
+    }
+
+    function removeFromFavorites(id) {
+      favoriteMovieIds = favoriteMovieIds.filter(favId => favId !== id);
+      localStorage.setItem('favorites', JSON.stringify(favoriteMovieIds));
+      renderFavorites();
+    }
+
+    async function renderFavorites() {
+      container.innerHTML = '';
+
+      if (favoriteMovieIds.length === 0) {
+        container.innerHTML = '<p class="empty-message">No favorite movies yet.</p>';
+        return;
+      }
+
+      for (let id of favoriteMovieIds) {
+        const movie = await fetchMovie(id);
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        card.innerHTML = `
+          <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" />
+          <p>${movie.title}</p>
+          <button class="remove-btn" onclick="event.stopPropagation(); removeFromFavorites(${movie.id})">🗑 Remove</button>
+        `;
+        card.onclick = () => {
+          window.location.href = `movie.html?id=${movie.id}`;
+        };
+        container.appendChild(card);
+      }
+    }
+
+    renderFavorites();
+  </script>
+</body>
+</html>
