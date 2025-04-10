@@ -38,10 +38,11 @@
       margin: 30px auto;
       width: 100%;
       max-width: 800px;
+      flex-wrap: wrap;
     }
 
     .search-container input {
-      flex: 5;
+      flex: 4;
       padding: 12px;
       font-size: 1rem;
       border: none;
@@ -50,7 +51,6 @@
     }
 
     .search-container button {
-      flex: 1;
       padding: 12px;
       font-size: 1rem;
       background-color: #e50914;
@@ -60,10 +60,17 @@
       cursor: pointer;
     }
 
+    .search-button {
+      background-color: #333;
+    }
+
+    .search-container button:hover {
+      background-color: #ff1c1c;
+    }
+
     .movie-grid {
       display: flex;
       flex-wrap: wrap;
-      flex-direction: row;
       gap: 20px;
       justify-content: center;
       padding: 20px;
@@ -117,17 +124,6 @@
       background-color: #ff1c1c;
     }
 
-    .favorites-button {
-      background-color: #e50914;
-      color: white;
-      padding: 10px 16px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
     @media (max-width: 600px) {
       .search-container {
         flex-direction: column;
@@ -169,11 +165,12 @@
     <h1>Movie Junction</h1>
     <div class="search-container">
       <input id="searchInput" placeholder="🔍 Search movies..." />
-      <button class="favorites-button" onclick="window.location.href='favorites.html'">❤️ View Favorites</button>
+      <button class="search-button" onclick="searchMovies()">Search</button>
+      <button onclick="window.location.href='favorites.html'">❤️ View Favorites</button>
     </div>
   </header>
 
-  <!-- Loader with Lottie animation -->
+  <!-- Loader -->
   <div id="loader">
     <dotlottie-player 
       src="https://lottie.host/8e214834-1683-4b2d-a776-0f486228160b/GiSwLtlpfO.lottie" 
@@ -233,7 +230,7 @@
         card.className = 'movie-card';
 
         card.innerHTML = `
-          <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}" />
+          <img src="${movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image'}" alt="${movie.title}" />
           <h3 class="movie-title">${movie.title}</h3>
           <button class="fav-button" onclick="event.stopPropagation(); toggleFavorite(${movie.id})">
             ${isFavorite(movie.id) ? '❤️ Remove' : '➕ Add to Favorites'}
@@ -248,27 +245,38 @@
       });
     }
 
-    function filterMovies(query) {
-      query = query.toLowerCase();
-      filteredMovies = allMovies.filter(m => m.title.toLowerCase().includes(query));
+    async function searchMovies() {
+      const query = searchInput.value.trim();
+      if (query === '') {
+        filteredMovies = [...allMovies];
+        renderMovies();
+        return;
+      }
+
+      loader.style.display = 'flex';
+      const res = await fetch(`${TMDB_API}/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`, {
+        headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+      });
+      const data = await res.json();
+      filteredMovies = data.results || [];
       renderMovies();
+      loader.style.display = 'none';
     }
 
-    searchInput.addEventListener('input', e => {
-      filterMovies(e.target.value);
+    let searchTimeout = null;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(searchMovies, 500);
     });
 
     (async function loadAllMovies() {
       loader.style.display = 'flex';
-
       for (let title of movieTitles) {
         const movie = await fetchMovieByTitle(title);
         if (movie) allMovies.push(movie);
       }
-
       filteredMovies = [...allMovies];
       renderMovies();
-
       loader.style.display = 'none';
     })();
   </script>
