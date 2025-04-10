@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Movie Junction</title>
+  <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -148,6 +149,20 @@
         height: 250px;
       }
     }
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #0d0d0d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    
   </style>
 </head>
 <body>
@@ -158,6 +173,18 @@
       <button class="favorites-button" onclick="window.location.href='favorites.html'">❤️ View Favorites</button>
     </div>
   </header>
+  
+  <div id="loader">
+    <dotlottie-player 
+      src="https://lottie.host/b0b1e4ad-2f71-4b98-946b-09d31bba0029/Mq4jl9lpBS.lottie" 
+      background="transparent" 
+      speed="1" 
+      style="width: 300px; height: 300px" 
+      loop 
+      autoplay>
+    </dotlottie-player>
+  </div>
+
 
   <div class="movie-grid" id="movieGrid"></div>
 
@@ -231,13 +258,21 @@
     });
 
     (async function loadAllMovies() {
-      for (let title of movieTitles) {
-        const movie = await fetchMovieByTitle(title);
-        if (movie) allMovies.push(movie);
-      }
-      filteredMovies = [...allMovies];
-      renderMovies();
-    })();
+  const loader = document.getElementById('loader');
+  loader.style.display = 'flex';
+
+  for (let title of movieTitles) {
+    const movie = await fetchMovieByTitle(title);
+    if (movie) allMovies.push(movie);
+  }
+
+  filteredMovies = [...allMovies];
+  renderMovies();
+
+  loader.style.display = 'none';
+})();
+
+    
   </script>
 </body>
 </html>
