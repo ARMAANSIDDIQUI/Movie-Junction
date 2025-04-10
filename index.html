@@ -39,7 +39,7 @@
       width: 100%;
       max-width: 800px;
     }
-    
+
     .search-container input {
       flex: 5;
       padding: 12px;
@@ -48,7 +48,7 @@
       border-radius: 5px;
       outline: none;
     }
-    
+
     .search-container button {
       flex: 1;
       padding: 12px;
@@ -58,7 +58,7 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-    }    
+    }
 
     .movie-grid {
       display: flex;
@@ -149,6 +149,7 @@
         height: 250px;
       }
     }
+
     #loader {
       position: fixed;
       top: 0;
@@ -161,8 +162,6 @@
       align-items: center;
       z-index: 9999;
     }
-
-    
   </style>
 </head>
 <body>
@@ -173,30 +172,34 @@
       <button class="favorites-button" onclick="window.location.href='favorites.html'">❤️ View Favorites</button>
     </div>
   </header>
-  
+
+  <!-- Loader with Lottie animation -->
   <div id="loader">
     <dotlottie-player 
-    src="https://lottie.host/8e214834-1683-4b2d-a776-0f486228160b/GiSwLtlpfO.lottie" 
-    background="transparent" 
-    speed="1" 
-    style="width: 300px; height: 300px" loop autoplay>
+      src="https://lottie.host/8e214834-1683-4b2d-a776-0f486228160b/GiSwLtlpfO.lottie" 
+      background="transparent" 
+      speed="1" 
+      style="width: 300px; height: 300px" 
+      loop 
+      autoplay>
     </dotlottie-player>
   </div>
-
 
   <div class="movie-grid" id="movieGrid"></div>
 
   <script>
     const movieGrid = document.getElementById('movieGrid');
     const searchInput = document.getElementById('searchInput');
+    const loader = document.getElementById('loader');
     const favoriteMovieIds = JSON.parse(localStorage.getItem('favorites') || '[]');
+
     const TMDB_API = "https://api.themoviedb.org/3";
     const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1MTI4NDNlNWMxM2IwMGQ2OTZhNTU3MGZlMTU2NmU5NCIsIm5iZiI6MTc0Mzk1MzUzOC4yNTUsInN1YiI6IjY3ZjI5ZTgyOGIxZjMyZWI3OWQ5Yzc3NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.cuIHv66LQsiarcWNi-VPK5iO9pEqerBhZSSxf2yUhTk";
 
     const movieTitles = [
-      'batman', 'spiderman','taare zameen par','3 idiots', 'iron man', 'doctor strange',
+      'batman', 'spiderman', 'taare zameen par', '3 idiots', 'iron man', 'doctor strange',
       'transformers', 'fast and furious', 'deadpool',
-      'thor', 'hulk','john wick', 'mission impossible','singham','wolverine','x-men'
+      'thor', 'hulk', 'john wick', 'mission impossible', 'singham', 'wolverine', 'x-men'
     ];
 
     const allMovies = [];
@@ -236,7 +239,7 @@
             ${isFavorite(movie.id) ? '❤️ Remove' : '➕ Add to Favorites'}
           </button>
         `;
-        
+
         card.onclick = () => {
           window.location.href = `movie.html?id=${movie.id}`;
         };
@@ -256,21 +259,18 @@
     });
 
     (async function loadAllMovies() {
-  const loader = document.getElementById('loader');
-  loader.style.display = 'flex';
+      loader.style.display = 'flex';
 
-  for (let title of movieTitles) {
-    const movie = await fetchMovieByTitle(title);
-    if (movie) allMovies.push(movie);
-  }
+      for (let title of movieTitles) {
+        const movie = await fetchMovieByTitle(title);
+        if (movie) allMovies.push(movie);
+      }
 
-  filteredMovies = [...allMovies];
-  renderMovies();
+      filteredMovies = [...allMovies];
+      renderMovies();
 
-  loader.style.display = 'none';
-})();
-
-    
+      loader.style.display = 'none';
+    })();
   </script>
 </body>
 </html>
